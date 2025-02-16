@@ -2,12 +2,39 @@ class LiveCodeEditor
 {
     constructor ()
     {
-        this.htmlEditor = document.getElementById( 'html-editor' );
-        this.cssEditor = document.getElementById( 'css-editor' );
-        this.jsEditor = document.getElementById( 'js-editor' );
-        this.previewFrame = document.getElementById( 'preview-frame' );
-        this.runButton = document.getElementById( 'run' );
-        this.autoRunCheckbox = document.getElementById( 'autoRun' );
+        this.htmlEditor = CodeMirror.fromTextArea(
+            document.getElementById( "html-editor" ),
+            {
+                mode: "xml",
+                theme: "material-darker",
+                lineNumbers: true,
+                autoCloseTags: true,
+                autoCloseBrackets: true
+            }
+        );
+        this.cssEditor = CodeMirror.fromTextArea(
+            document.getElementById( "css-editor" ),
+            {
+                mode: "css",
+                theme: "material-darker",
+                lineNumbers: true,
+                autoCloseTags: true,
+                autoCloseBrackets: true
+            }
+        );
+        this.jsEditor = CodeMirror.fromTextArea(
+            document.getElementById( "js-editor" ),
+            {
+                mode: "javascript",
+                theme: "material-darker",
+                lineNumbers: true,
+                autoCloseTags: true,
+                autoCloseBrackets: true
+            }
+        );
+        this.previewFrame = document.getElementById( "preview-frame" );
+        this.runButton = document.getElementById( "run" );
+        this.autoRunCheckbox = document.getElementById( "autoRun" );
         this.autoRunTimeout = null;
 
         this.init();
@@ -19,17 +46,17 @@ class LiveCodeEditor
         this.loadSavedCode();
 
         // Event listeners
-        this.runButton.addEventListener( 'click', () => this.updatePreview() );
+        this.runButton.addEventListener( "click", () => this.updatePreview() );
 
         // Auto-save on input
-        this.htmlEditor.addEventListener( 'input', () => this.saveCode() );
-        this.cssEditor.addEventListener( 'input', () => this.saveCode() );
-        this.jsEditor.addEventListener( 'input', () => this.saveCode() );
+        this.htmlEditor.on( "change", () => this.saveCode() );
+        this.cssEditor.on( "change", () => this.saveCode() );
+        this.jsEditor.on( "change", () => this.saveCode() );
 
         // Keyboard shortcuts
-        document.addEventListener( 'keydown', ( e ) =>
+        document.addEventListener( "keydown", ( e ) =>
         {
-            if ( e.ctrlKey && e.key === 's' )
+            if ( e.ctrlKey && e.key === "s" )
             {
                 e.preventDefault();
                 this.updatePreview();
@@ -39,17 +66,12 @@ class LiveCodeEditor
         // Initial preview
         this.updatePreview();
 
-        // Setup tab behavior
-        this.setupTabBehavior( this.htmlEditor );
-        this.setupTabBehavior( this.cssEditor );
-        this.setupTabBehavior( this.jsEditor );
-
         // Enable auto-run
         this.enableAutoRun();
 
         // Restore auto-run preference
-        const savedAutoRun = localStorage.getItem( 'autoRun' );
-        if ( savedAutoRun === 'true' )
+        const savedAutoRun = localStorage.getItem( "autoRun" );
+        if ( savedAutoRun === "true" )
         {
             this.autoRunCheckbox.checked = true;
         }
@@ -57,9 +79,9 @@ class LiveCodeEditor
 
     updatePreview ()
     {
-        const html = this.htmlEditor.value;
-        const css = this.cssEditor.value;
-        const js = this.jsEditor.value;
+        const html = this.htmlEditor.getValue();
+        const css = this.cssEditor.getValue();
+        const js = this.jsEditor.getValue();
 
         const previewContent = `
             <!DOCTYPE html>
@@ -73,61 +95,44 @@ class LiveCodeEditor
             </html>
         `;
 
-        const blob = new Blob( [ previewContent ], { type: 'text/html' } );
+        const blob = new Blob( [ previewContent ], { type: "text/html" } );
         this.previewFrame.src = URL.createObjectURL( blob );
     }
 
     saveCode ()
     {
         const code = {
-            html: this.htmlEditor.value,
-            css: this.cssEditor.value,
-            js: this.jsEditor.value
+            html: this.htmlEditor.getValue(),
+            css: this.cssEditor.getValue(),
+            js: this.jsEditor.getValue()
         };
-        localStorage.setItem( 'savedCode', JSON.stringify( code ) );
+        localStorage.setItem( "savedCode", JSON.stringify( code ) );
     }
 
     loadSavedCode ()
     {
-        const savedCode = localStorage.getItem( 'savedCode' );
+        const savedCode = localStorage.getItem( "savedCode" );
         if ( savedCode )
         {
             const code = JSON.parse( savedCode );
-            this.htmlEditor.value = code.html;
-            this.cssEditor.value = code.css;
-            this.jsEditor.value = code.js;
+            this.htmlEditor.setValue( code.html );
+            this.cssEditor.setValue( code.css );
+            this.jsEditor.setValue( code.js );
         }
-    }
-
-    setupTabBehavior ( editor )
-    {
-        editor.addEventListener( 'keydown', ( e ) =>
-        {
-            if ( e.key === 'Tab' )
-            {
-                e.preventDefault();
-
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-
-                editor.value = editor.value.substring( 0, start ) + '    ' + editor.value.substring( end );
-                editor.selectionStart = editor.selectionEnd = start + 4;
-            }
-        } );
     }
 
     clearEditor ( type )
     {
         switch ( type )
         {
-            case 'html':
-                this.htmlEditor.value = '';
+            case "html":
+                this.htmlEditor.setValue( "" );
                 break;
-            case 'css':
-                this.cssEditor.value = '';
+            case "css":
+                this.cssEditor.setValue( "" );
                 break;
-            case 'js':
-                this.jsEditor.value = '';
+            case "js":
+                this.jsEditor.setValue( "" );
                 break;
         }
         this.saveCode();
@@ -136,12 +141,11 @@ class LiveCodeEditor
 
     enableAutoRun ()
     {
-        const editors = [ 'html-editor', 'css-editor', 'js-editor' ];
+        const editors = [ this.htmlEditor, this.cssEditor, this.jsEditor ];
 
-        editors.forEach( editorId =>
+        editors.forEach( ( editor ) =>
         {
-            const editor = document.getElementById( editorId );
-            editor.addEventListener( 'input', () =>
+            editor.on( "change", () =>
             {
                 // Clear previous timeout
                 clearTimeout( this.autoRunTimeout );
@@ -154,15 +158,15 @@ class LiveCodeEditor
         } );
 
         // Save auto-run preference
-        this.autoRunCheckbox.addEventListener( 'change', ( e ) =>
+        this.autoRunCheckbox.addEventListener( "change", ( e ) =>
         {
-            localStorage.setItem( 'autoRun', e.target.checked );
+            localStorage.setItem( "autoRun", e.target.checked );
         } );
     }
 }
 
 // Initialize editor when DOM is loaded
-document.addEventListener( 'DOMContentLoaded', () =>
+document.addEventListener( "DOMContentLoaded", () =>
 {
     window.editor = new LiveCodeEditor();
 } );
