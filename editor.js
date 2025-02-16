@@ -7,7 +7,7 @@ class LiveCodeEditor
         this.jsEditor = document.getElementById( 'js-editor' );
         this.previewFrame = document.getElementById( 'preview-frame' );
         this.runButton = document.getElementById( 'run' );
-        this.autoRunCheckbox = document.getElementById('autoRun');
+        this.autoRunCheckbox = document.getElementById( 'autoRun' );
         this.autoRunTimeout = null;
 
         this.init();
@@ -48,8 +48,9 @@ class LiveCodeEditor
         this.enableAutoRun();
 
         // Restore auto-run preference
-        const savedAutoRun = localStorage.getItem('autoRun');
-        if (savedAutoRun === 'true') {
+        const savedAutoRun = localStorage.getItem( 'autoRun' );
+        if ( savedAutoRun === 'true' )
+        {
             this.autoRunCheckbox.checked = true;
         }
     }
@@ -133,25 +134,30 @@ class LiveCodeEditor
         this.updatePreview();
     }
 
-    enableAutoRun() {
-        const editors = ['html-editor', 'css-editor', 'js-editor'];
-        
-        editors.forEach(editorId => {
-            const editor = document.getElementById(editorId);
-            editor.addEventListener('input', () => {
+    enableAutoRun ()
+    {
+        const editors = [ 'html-editor', 'css-editor', 'js-editor' ];
+
+        editors.forEach( editorId =>
+        {
+            const editor = document.getElementById( editorId );
+            editor.addEventListener( 'input', () =>
+            {
                 // Clear previous timeout
-                clearTimeout(this.autoRunTimeout);
+                clearTimeout( this.autoRunTimeout );
                 // Set new timeout to run after 1 second of no typing
-                if (this.autoRunCheckbox.checked) {
-                    this.autoRunTimeout = setTimeout(() => this.updatePreview(), 1000);
+                if ( this.autoRunCheckbox.checked )
+                {
+                    this.autoRunTimeout = setTimeout( () => this.updatePreview(), 1000 );
                 }
-            });
-        });
+            } );
+        } );
 
         // Save auto-run preference
-        this.autoRunCheckbox.addEventListener('change', (e) => {
-            localStorage.setItem('autoRun', e.target.checked);
-        });
+        this.autoRunCheckbox.addEventListener( 'change', ( e ) =>
+        {
+            localStorage.setItem( 'autoRun', e.target.checked );
+        } );
     }
 }
 
